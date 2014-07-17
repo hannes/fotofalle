@@ -1,0 +1,15 @@
+var config = {};
+config.twitter = {};
+config.twitter.consumer_key =        'RDMltuGuJRZMJh6l1VmK4B0g8'
+config.twitter.consumer_secret =     '5Yw8MlcUKeMD2gxO5TKrWZjumc6Aami3xjiqKI79HB2Dxf6xBx'
+config.twitter.access_token =        '2651793792-EW6C0HMUipnV1FNh3mIRVagCtm3lyeoDKmbLeES'
+config.twitter.access_token_secret = 'AgFOPz3cgDSpkxYKFD9umb1Yd3LXTrvFA3SZnNlAgxWFP'
+
+config.framepathprefix = '/Users/hannes/framedump/nycts-';
+config.framepathpostfix = '.jpg';
+config.boundingbox = [ '-73.9853','40.7584','-73.9847','40.7594'];
+config.tweet = 'here is a picture of you tweeting on Times Square just now!';
+config.tweetdelay = 2000;
+config.picdelsecs = 30;
+
+module.exports = config;
