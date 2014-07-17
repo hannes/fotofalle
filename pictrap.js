@@ -42,6 +42,10 @@ stream.on('tweet', function(tweet) {
         } else {
             return;
         }
+        if (!fs.existsSync(fname)) {
+            console.log('Could not find file ' + fname);
+            return;
+        }
         var update =  '.@' + tweet.user.screen_name + ' ' + config.tweet;
         console.log(update);
         console.log(fname);
