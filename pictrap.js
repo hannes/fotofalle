@@ -32,7 +32,7 @@ stream.on('tweet', function(tweet) {
     // find picture by timestamp, ez
     // we need some time too for the frame to appear, so delay
     setTimeout(function() {
-        var time = new Date(tweet.created_at).getTime() / 1000;
+        var time = Math.round(new Date(tweet.created_at).getTime() / 1000);
         var fname = config.framepathprefix + time + config.framepathpostfix;
         // also try seconds before, there might be a gap
         if (!fs.existsSync(fname)) {
@@ -46,7 +46,7 @@ stream.on('tweet', function(tweet) {
             console.log('Could not find file ' + fname);
             return;
         }
-        var update =  '.@' + tweet.user.screen_name + ' ' + config.tweet;
+        var update =  '@' + tweet.user.screen_name + ' ' + config.tweet;
         console.log(update);
         console.log(fname);
         var options = {
@@ -59,7 +59,7 @@ stream.on('tweet', function(tweet) {
             }
         };
         var r = request.post(options, function(err, response, body) {
-                if (err || response.statusCode !== 200 || response.statusCode !== 201) {
+                if (err || response.statusCode !== 200) {
                     console.log(err ? err : 'Error: ' + response.statusCode);
                     return;
                 }
