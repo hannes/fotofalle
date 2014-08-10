@@ -74,7 +74,7 @@ stream.on('tweet', function(tweet) {
 
 // background process that deletes old pics
 setInterval(function() {
-    var oldts = (new Date().getTime() / 1000) - config.picdelsecs;
+    var oldts = Math.round(new Date().getTime() / 1000) - config.picdelsecs;
     // everything with a smaller ts than oldts will have to go
     var fpath = path.dirname(config.framepathprefix);
     fs.readdir(fpath, function(err, files) {

@@ -7,8 +7,10 @@ app         = require('express')(),
 path        = require('path'),
 crypto      = require('crypto'),
 tmp         = require('tmp'),
-spawn       = require('child_process').spawn;
+spawn       = require('child_process').spawn,
+bodyParser  = require('body-parser');
 
+app.use(bodyParser.json())
 var j = request.jar();
 var config = require('./config');
 
@@ -32,7 +34,6 @@ LIMAP.prototype = {
     }
     this.lastid++;
     this.entries[entry] = this.lastid;
-    console.log(this.entries);
     return this;
   },
   has : function(entry) {
@@ -44,7 +45,7 @@ function LIMAP(maxsize) {
   this.maxsize = maxsize;
 }
 
-var igmap = LIMAP(1000);
+var igmap = new LIMAP(1000);
 
 
 var iclient = request.defaults({
@@ -83,8 +84,8 @@ app.get('/callback', function(request, response){
 }
 });
 
-app.post('/callback', function(request, response){
-  JSON.parse(request).body.forEach(function(notificationOjb){
+app.post('/callback', function(req, resp){
+  req.body.forEach(function(notificationOjb){
   // each notificationOjb tells us that we should ask the IG API for updates
   ropt = {uri:'https://api.instagram.com/v1/geographies/' + notificationOjb.object_id + '/media/recent' +
   '?' + querystring.stringify({client_id: config.instagram.client_id, count:'1'})};
@@ -97,10 +98,14 @@ app.post('/callback', function(request, response){
     }
     JSON.parse(body).data.forEach(function(ipost){
           var p = [ipost.location.latitude,ipost.location.longitude];
+          /*
+          if (ipost.user.username != 'hfmuehleisen') {
+            return;
+          }
+          */
           if (p[0] < config.boundingbox[0] || p[0] > config.boundingbox[2] || 
             p[1] < config.boundingbox[1] || p[1] > config.boundingbox[3]) {
-            
-            return;
+           return;
           }
           // do not annoy the same people twice and filter double notifications
           if (igmap.has(ipost.link) || igmap.has(ipost.user.username)) {
@@ -113,22 +118,18 @@ app.post('/callback', function(request, response){
           igmap.put(ipost.link);
           igmap.put(ipost.user.username);
 
-          console.log(ipost);
-          console.log(ipost.link + ' ['+ipost.location.latitude+'/'+ipost.location.longitude+']');
+          console.log(ipost.link + ' from ' +ipost.user.username+ ' ['+ipost.location.latitude+'/'+ipost.location.longitude+']');
 
           // PAYLOAD :)
-
           // find webcam pic
-          var time = Math.round(new Date(tweet.created_at).getTime() / 1000);
+          var time = parseInt(ipost.created_time);
 
           var fname = config.framepathprefix + time + config.framepathpostfix;
           // also try seconds before, there might be a gap
           if (!fs.existsSync(fname)) {
               fname = config.framepathprefix + (time - 1) + config.framepathpostfix;
-          } else  if (!fs.existsSync(fname)) {
+          } else if (!fs.existsSync(fname)) {
               fname = config.framepathprefix + (time - 2) + config.framepathpostfix;
-          } else {
-              return;
           }
           if (!fs.existsSync(fname)) {
               console.log('Could not find file ' + fname);
@@ -140,14 +141,20 @@ app.post('/callback', function(request, response){
               var dlreq = request(ipost.images.low_resolution.url);
               dlreq.pipe(fs.createWriteStream(pathig));
               dlreq.on('end',function(){
+//                console.log('downloaded pic from IG from ' + ipost.images.low_resolution.url + ' to ' + pathig);
               tmp.tmpName({postfix: '.jpg'},function (err, pathout) {
                 // run imagemagick
                 var bash = spawn('./instagramize.sh', [fname, pathig, pathout]);
                 bash.on('exit', function (code) {
-                  console.log(pathout);
+                  if (code != 0) {
+                    console.log('ERROR converting');
+                    return;
+                  }
+//                  console.log ('converted pic from ' + fname + ' and ' + pathig + ' to ' + pathout);
+ 
                   // and now upload.. deep in cb hell
 
-                  var taggeduserid = ipost.user.userid;
+                  var taggeduserid = ipost.user.id;
                   var picpath = pathout;
 
                   // login
@@ -159,7 +166,6 @@ app.post('/callback', function(request, response){
                       console.log(body);
                       return;
                     }
-
                     respj = JSON.parse(body);
                     var userid = respj.logged_in_user.pk;
                     var uploadid = Math.round(new Date().getTime() / 1000);
@@ -202,8 +208,8 @@ app.post('/callback', function(request, response){
                           console.log(body);
                           return;
                         }
-                        console.log("SUCCESS");
-                        console.log(util.inspect(JSON.parse(body), false, null));
+                        console.log('SUCCESS: http://instagram.com/p/' + JSON.parse(body).media.code);
+                       // console.log(util.inspect(JSON.parse(body), false, null));
 
                         // TODO: also post to twitter?
 
@@ -224,12 +230,12 @@ app.post('/callback', function(request, response){
   });
 });
 
-  response.writeHead(200);
+  resp.writeHead(200);
 });
 
 // siubscribe to the (official) IB streaming API
 app.listen(config.instagram.streamingport, function(){
-  console.log("Listening in port %d", config.instagram.streamingport);
+  console.log("Listening on port %d", config.instagram.streamingport);
   request.del('https://api.instagram.com/v1/subscriptions?'+
     querystring.stringify({client_id: config.instagram.client_id,client_secret:config.instagram.client_secret,object:'all'}),
     function(error,response,body) {
