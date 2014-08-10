@@ -1,9 +1,25 @@
 var config = {};
 config.twitter = {};
-config.twitter.consumer_key =        ''
-config.twitter.consumer_secret =     ''
-config.twitter.access_token =        ''
-config.twitter.access_token_secret = ''
+config.twitter.consumer_key =        '';
+config.twitter.consumer_secret =     '';
+config.twitter.access_token =        '';
+config.twitter.access_token_secret = '';
+
+config.instagram = {};
+config.instagram.streamingport = 5000;
+config.instagram.callback = '';
+config.instagram.client_id = '';
+config.instagram.client_secret = '';
+
+/* see http://blog.will3942.com/reverse-engineering-instagram */
+config.instagram.key = '';
+config.instagram.uuid = '';
+config.instagram.user = '';
+config.instagram.pass = '';
+config.instagram.caption = 'here is a picture of you posting on Instagram from Times Square just now!';
+config.instagram.webcamlong = 40.7591;
+config.instagram.webcamlat = -73.9849;
+config.instagram.radius = 200;
 
 config.framepathprefix = '/some/path/nycts-';
 config.framepathpostfix = '.jpg';
@@ -11,5 +27,6 @@ config.boundingbox = [ '-73.9853','40.7584','-73.9847','40.7594'];
 config.tweet = 'here is a picture of you tweeting on Times Square just now!';
 config.tweetdelay = 2000;
 config.picdelsecs = 30;
+
 
 module.exports = config;

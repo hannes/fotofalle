@@ -60,7 +60,7 @@ stream.on('tweet', function(tweet) {
         };
         var r = request.post(options, function(err, response, body) {
                 if (err || response.statusCode !== 200 || response.statusCode !== 201) {
-                    console.log(err? err : 'Error: ' + response.statusCode);
+                    console.log(err ? err : 'Error: ' + response.statusCode);
                     return;
                 }
                 console.log('sent');
