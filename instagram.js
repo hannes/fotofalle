@@ -89,7 +89,6 @@ app.post('/callback', function(req, resp){
   // each notificationOjb tells us that we should ask the IG API for updates
   ropt = {uri:'https://api.instagram.com/v1/geographies/' + notificationOjb.object_id + '/media/recent' +
   '?' + querystring.stringify({client_id: config.instagram.client_id, count:'1'})};
-
   request(ropt,function(error, response, body) {
     if (error || response.statusCode != 200) {
       console.log('ERROR getting details after notification');
@@ -97,12 +96,14 @@ app.post('/callback', function(req, resp){
       return;
     }
     JSON.parse(body).data.forEach(function(ipost){
-          var p = [ipost.location.latitude,ipost.location.longitude];
+          var p = [ipost.location.longitude,ipost.location.latitude];
           /*
           if (ipost.user.username != 'hfmuehleisen') {
             return;
           }
           */
+          console.log(ipost.link + ' from ' +ipost.user.username+ ' ['+ipost.location.latitude+'/'+ipost.location.longitude+']');
+
           if (p[0] < config.boundingbox[0] || p[0] > config.boundingbox[2] || 
             p[1] < config.boundingbox[1] || p[1] > config.boundingbox[3]) {
            return;
@@ -117,8 +118,6 @@ app.post('/callback', function(req, resp){
           }
           igmap.put(ipost.link);
           igmap.put(ipost.user.username);
-
-          console.log(ipost.link + ' from ' +ipost.user.username+ ' ['+ipost.location.latitude+'/'+ipost.location.longitude+']');
 
           // PAYLOAD :)
           // find webcam pic
